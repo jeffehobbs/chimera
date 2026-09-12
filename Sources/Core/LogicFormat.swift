@@ -40,7 +40,7 @@ struct LogicRecord: Equatable {
     var tag: String
     var version: UInt16      // +4  class version, stable per tag
     var subtype: UInt16      // +6  role discriminator within the tag
-    var indexRaw: UInt32     // +8  index << 18
+    var indexRaw: UInt32     // +8  NOT a per-tag counter — see `index`
     var unk12: UInt16        // +12
     var id1: UInt32          // +14 object id, 0xFFFFFFFF = nil
     var id2: UInt32          // +18 object id
@@ -50,6 +50,14 @@ struct LogicRecord: Equatable {
 
     static let headerSize = 36
 
+    /// The high bits of +8. Named "index" on the guess that it counted records
+    /// within a tag group; the corpus disproves that outright. Logic gives all
+    /// 114 AuRg records index 0 and all 99 AuCU records index 9, and MSeq, EvSq
+    /// and Trak carry the *same* sequence as each other — the signature of a
+    /// reference to a parent or channel, not a counter. Read it, do not rebuild
+    /// it: a `renumber()` that made each tag group consecutive rewrote this
+    /// field in 777 of Trump 1's 993 records and every output it touched came
+    /// out as "Project may be damaged."
     var index: Int { Int(indexRaw >> 18) }
     var byteCount: Int { Self.headerSize + payload.count }
 
@@ -150,16 +158,6 @@ struct LogicProject {
 
     var songIndex: Int? { records.firstIndex { $0.tag == "Song" } }
 
-    /// Renumbers each tag group so the index field stays consecutive after
-    /// records have been added, dropped or reordered.
-    mutating func renumber() {
-        var counts: [String: Int] = [:]
-        for i in records.indices where records[i].tag != "Song" {
-            let n = counts[records[i].tag, default: 0]
-            records[i].setIndex(n)
-            counts[records[i].tag] = n + 1
-        }
-    }
 }
 
 // MARK: - Song globals

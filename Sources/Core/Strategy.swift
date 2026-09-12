@@ -228,6 +228,5 @@ extension LogicProject {
             i = j
         }
         records = kept
-        renumber()
     }
 }

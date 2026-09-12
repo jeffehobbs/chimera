@@ -318,7 +318,6 @@ enum Dropout: MutationStrategy {
             guard r.tag == tag, ctx.rng.chance(share) else { return true }
             dropped += 1; return false
         }
-        ctx.project.renumber()
         ctx.note("Dropped \(dropped) \(tag) records (\(before) → \(ctx.project.records.count)).")
     }
 }

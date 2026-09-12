@@ -118,8 +118,6 @@ enum Chimerizer {
             ctx.note("· \(s.title)")
             s.run(&ctx, step.values)
         }
-        ctx.project.renumber()
-
         // The gate: if our own reader cannot walk what we just built, nothing
         // reaches the disk. Logic may still refuse it, but this is the floor.
         let data = ctx.project.serialized()
