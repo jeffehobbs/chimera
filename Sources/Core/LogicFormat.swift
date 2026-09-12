@@ -343,6 +343,24 @@ extension LogicRecord {
                 Double(payload.u64(Layout.aurgLength)) / Layout.fixedOne)
     }
 
+    /// Move a region's window, staying inside the frames its file is known to hold.
+    ///
+    /// The only span we can prove a source file contains is the one the region
+    /// already referenced, because that came out of a project Logic opened. Write a
+    /// window past the end of the file and Logic refuses the whole project — "Project
+    /// may be damaged / One or multiple audio files changed in length" — so every
+    /// strategy that moves or resizes a region goes through here.
+    ///
+    /// This is the honest bound, not the true one: decoding AuRg's reference to its
+    /// AuFl would give the file's real length and a wider span to roam.
+    mutating func setRegionExtentClamped(start: Double, length: Double) {
+        guard let e = regionExtent else { return }
+        let proven = e.start + e.length
+        let want = max(1, min(length, proven))
+        let s = max(0, min(start, proven - want))
+        setRegionExtent(start: s, length: max(1, min(want, proven - s)))
+    }
+
     mutating func setRegionExtent(start: Double, length: Double) {
         guard tag == "AuRg", payload.count >= Layout.aurgLength + 8 else { return }
         let s = UInt64(max(0, min(start, 1e12)) * Layout.fixedOne)

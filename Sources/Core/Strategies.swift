@@ -111,15 +111,15 @@ enum RegionDrift: MutationStrategy {
             guard extents.count == idx.count else { return }
             let dealt = ctx.rng.shuffled(extents)
             for (n, i) in idx.enumerated() where ctx.rng.chance(odds) {
-                ctx.project.records[i].setRegionExtent(start: dealt[n].start, length: max(1, dealt[n].length * squeeze))
+                ctx.project.records[i].setRegionExtentClamped(start: dealt[n].start, length: max(1, dealt[n].length * squeeze))
                 moved += 1
             }
         } else {
             for i in idx {
                 guard let e = ctx.project.records[i].regionExtent, ctx.rng.chance(odds) else { continue }
                 let drift = (ctx.rng.unit() * 2 - 1) * reach * e.length
-                ctx.project.records[i].setRegionExtent(start: max(0, e.start + drift),
-                                                       length: max(1, e.length * squeeze))
+                ctx.project.records[i].setRegionExtentClamped(start: e.start + drift,
+                                                              length: max(1, e.length * squeeze))
                 moved += 1
             }
         }
@@ -170,7 +170,7 @@ enum RegionConvolution: MutationStrategy {
         for (n, i) in idx.enumerated() {
             guard let e = ctx.project.records[i].regionExtent else { continue }
             let length = e.length + (convolved[n] - e.length) * wet
-            ctx.project.records[i].setRegionExtent(start: e.start, length: max(1, length))
+            ctx.project.records[i].setRegionExtentClamped(start: e.start, length: max(1, length))
         }
         ctx.note("Convolved \(host.count) regions against a \(k.count)-tap kernel.")
     }
