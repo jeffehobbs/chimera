@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Not sandboxed, deliberately. The whole job is reading Logic project
+       bundles from wherever they happen to live and writing new ones next to
+       them; a sandbox would mean a security-scoped bookmark dance around every
+       file for no benefit under Developer ID distribution. -->
+</dict>
+</plist>

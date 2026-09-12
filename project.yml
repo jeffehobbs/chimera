@@ -1,0 +1,71 @@
+name: Chimera
+options:
+  bundleIdPrefix: com.jeffhobbs
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: "YKF353373Y"
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  # ── Chimera, the app ────────────────────────────────────────────────────
+  #
+  # Sources/Core is the whole engine and knows nothing about AppKit; it is
+  # compiled verbatim into the command-line target too, which is what makes it
+  # possible to run all thirteen strategies against a corpus and check the
+  # results without touching the window.
+  Chimera:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/Core
+      - Sources/Mac
+      - path: Sources/Mac/Assets.xcassets
+        optional: true
+    info:
+      path: Sources/Mac/App/Info.plist
+      properties:
+        CFBundleDisplayName: Chimera
+        CFBundleIconFile: AppIcon
+        CFBundleIconName: AppIcon
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.music
+        LSMinimumSystemVersion: "14.0"
+        NSHumanReadableCopyright: "Jeff Hobbs"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jeffhobbs.chimera
+        PRODUCT_MODULE_NAME: Chimera
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+        # The raw build setting rather than XcodeGen's `entitlements:` key:
+        # that key is an *output* and would overwrite the file on every generate.
+        CODE_SIGN_ENTITLEMENTS: Sources/Mac/Chimera.entitlements
+        ARCHS: "$(ARCHS_STANDARD)"
+      configs:
+        Debug:
+          ONLY_ACTIVE_ARCH: "YES"
+        Release:
+          ONLY_ACTIVE_ARCH: "NO"
+
+  # ── chimera-cli ─────────────────────────────────────────────────────────
+  #
+  # Same engine, no window. `./build.sh check` runs every strategy against a
+  # corpus of real projects and fails if any result will not parse back.
+  chimera-cli:
+    type: tool
+    platform: macOS
+    sources:
+      - Sources/Core
+      - Sources/CLI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jeffhobbs.chimera.cli
+        PRODUCT_MODULE_NAME: ChimeraCLI
+        CODE_SIGN_STYLE: Automatic
