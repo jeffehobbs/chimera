@@ -211,10 +211,45 @@ extension LogicProject {
         return out
     }
 
+
+    /// How many times each +8 value may appear among track units, and a supply of
+    /// values no unit uses. See `replaceTrackUnits`.
+    private func reindexingNewUnits(_ units: [TrackUnit]) -> [TrackUnit] {
+        var budget: [Int: Int] = [:]
+        for u in trackUnits() { budget[u.records[0].index, default: 0] += 1 }
+        var used = Set(records.map(\.index))
+        used.formUnion(units.map { $0.records[0].index })
+        // Fresh values come from the gaps, not from above the maximum: the field
+        // tops out at 16383 and a project really does use that value, so counting
+        // upward from it wrapped straight back onto track zero.
+        var next = 1
+
+        return units.map { u in
+            let v = u.records[0].index
+            if let left = budget[v], left > 0 { budget[v] = left - 1; return u }
+            while used.contains(next), next <= LogicRecord.maxIndex { next += 1 }
+            guard next <= LogicRecord.maxIndex else { return u }
+            let fresh = next
+            used.insert(fresh)
+            var moved = u
+            for i in moved.records.indices { moved.records[i].setIndex(fresh) }
+            return moved
+        }
+    }
+
     /// Replaces every track unit with a new list, leaving all other records — the
     /// Song header, styles, environment, mixer — exactly where they were.
+    ///
+    /// Units that are new to this project — a stutter's copies, a donor's grafted
+    /// tracks — are given an unused +8 value first. That field is shared by a
+    /// unit's MSeq, Trak and EvSq records and a real track has to own its value
+    /// outright: land a second track on one already in use and Logic rejects the
+    /// project with "Project may be damaged". Logic's own scaffolding sequences do
+    /// repeat a few values, so the original multiplicity of every value is kept and
+    /// only the surplus is moved.
     mutating func replaceTrackUnits(with units: [TrackUnit]) {
         guard records.contains(where: { $0.tag == "MSeq" }) else { return }
+        let units = reindexingNewUnits(units)
         var kept: [LogicRecord] = []
         var inserted = false
         var i = 0

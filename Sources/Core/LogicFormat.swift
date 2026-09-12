@@ -61,9 +61,18 @@ struct LogicRecord: Equatable {
     var index: Int { Int(indexRaw >> 18) }
     var byteCount: Int { Self.headerSize + payload.count }
 
+    /// The field is 14 bits wide — it occupies bits 18..<32 — so 16383 is the
+    /// largest value it can hold, and a project really does use that one. Values
+    /// past it used to truncate into the low end and silently collide with track
+    /// zero; now they are refused.
+    static let maxIndex = 0x3FFF
+
     /// Rewrites only the group index, leaving the low bits of the field alone.
-    mutating func setIndex(_ i: Int) {
-        indexRaw = (indexRaw & 0x3FFFF) | (UInt32(truncatingIfNeeded: i) << 18)
+    @discardableResult
+    mutating func setIndex(_ i: Int) -> Bool {
+        guard (0...Self.maxIndex).contains(i) else { return false }
+        indexRaw = (indexRaw & 0x3FFFF) | (UInt32(i) << 18)
+        return true
     }
 }
 
