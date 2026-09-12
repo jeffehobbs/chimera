@@ -9,8 +9,15 @@ It works by reading and rewriting `ProjectData`, Logic's undocumented project st
 is documented in [`~/Scripts/logic-discovery`](../logic-discovery/FORMAT.md); this app is what
 that reverse engineering was for.
 
-**Everything it makes opens in Logic.** All thirteen strategies, and all thirteen chained at
-once across three source projects, were opened in Logic Pro 12.3.1 as part of testing.
+**All thirteen strategies produce a project that opens in Logic Pro 12.3.1**, each verified by
+hand, one strategy at a time, against a host opened untouched first. That last part matters: for
+a while this claim rested on the output parsing back through its own reader, which a wrecked
+project passes happily. Only opening it in Logic counts.
+
+Two known limits. Tracks brought in by **Track Graft** and **Track Zipper** arrive without their
+instruments — a track unit carries no mixer records, so donor tracks point at channel strips the
+host doesn't have. And **Byte Weave** will make Logic complain about plug-in state, which is the
+strategy doing exactly what it says.
 
 ## The strategies
 
